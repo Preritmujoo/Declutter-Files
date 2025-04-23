@@ -16,70 +16,26 @@
 // pdf/this.pdf pdf/harry.pdf
 // zip/harry.zip zip/Rohan.zip
 
-const fs = require('fs');
-const path = require('path');
 
-// Function to get all file extensions in the directory
-async function getExtensions(directoryPath) {
-    try {
-        const files = await fs.promises.readdir(directoryPath); // It will read the directory and store them in files array
-        let fileMap = new Map(); // Map to store file extensions and their corresponding files
+import fs from "fs/promises"
+import fsn from "fs"
+import path from "path"
 
-        files.forEach(file => {
-            const ext = path.extname(file); // Get the file extension using path.extname
-            if (ext) {
-                if (!fileMap.has(ext)) { // Check if the map already has the extension
-                    // If not, create a new entry in the map
-                    fileMap.set(ext, []);
-                }
-                fileMap.get(ext).push(file); // It will add the file to the corresponding extension array
-            }
-        });
+const basepath = "D:\\Web Development Courses\\Sigma Web Development By Harry Bhai\\91 Exercise 15\\Files"
 
-        return { directoryPath, fileMap }; // Return the directory path and the map of file extensions and files
-    } catch (err) {
-        console.error("Error reading the directory:", err);
-        return { directoryPath, fileMap: new Map() }; // Return an empty map in case of error to avoid crashing the program
-    }
-}
+let files = await fs.readdir(basepath)
 
-// Function to create a folder for a specific file extension
-async function createDirectory(directoryPath, ext) {
-    const dirPath = path.join(directoryPath, ext.substring(1)); // Removing '.' from the extension and joining them as path/ext
-
-    try {
-        await fs.promises.mkdir(dirPath, { recursive: true }); // Creating directory and using recursive: true to avoid errors if the directory already exists
-        console.log(`Directory created: ${dirPath}`);
-    } catch (err) {
-        console.error(`Error creating directory '${dirPath}':`, err);
-    }
-}
-
-// Function to move files to their respective folders
-async function moveFile(directoryPath, file, ext) {
-    const oldPath = path.join(directoryPath, file); // Get the old file path
-    const newFolder = path.join(directoryPath, ext.substring(1)); // Get the new folder path
-    const newPath = path.join(newFolder, file); // Get the new file path
-
-    try {
-        await fs.promises.rename(oldPath, newPath); // Rename (move -> cut) the file to the new path
-        console.log(`Moved: ${file} -> ${newPath}`);
-    } catch (err) {
-        console.error(`Error moving file '${file}':`, err);
-    }
-}
-
-// Function to organize files into their respective folders
-async function organizeFilesByExtension(directoryPath) {
-    const { fileMap } = await getExtensions(directoryPath); // Get the file map
-
-    for (const [ext, files] of fileMap.entries()) { // Looping through the map of file extensions and files
-        await createDirectory(directoryPath, ext); // Creating directory one for each extension
-        for (const file of files) {
-            await moveFile(directoryPath, file, ext); // Moving files to their respective folders
+for (const item of files) {
+    console.log("running for ", item)
+    let ext = item.split(".")[item.split(".").length - 1] // For getting the extension of the file
+    if (ext != "js" && ext != "json" && item.split(".").length > 1) { 
+        if (fsn.existsSync(path.join(basepath, ext))) {
+            // Move the file to new directory if its not a js or json file AND only if the new directory already exists
+            fs.rename(path.join(basepath, item), path.join(basepath, ext, item)) // 
+        }
+        else {
+            fs.mkdir(path.join(basepath, ext)) // For making new directory
+            fs.rename(path.join(basepath, item), path.join(basepath, ext, item)) // For moving the file from old directory to new directory
         }
     }
 }
-
-// This will execute function
-organizeFilesByExtension("./Files/");
